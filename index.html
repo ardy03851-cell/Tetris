@@ -202,7 +202,7 @@
       L: [[0,0,1], [1,1,1], [0,0,0]],
       O: [[1,1], [1,1]],
       S: [[0,1,1], [1,1,0], [0,0,0]],
-      T: [[0,1], [1,1,1], [0,0,0]],
+      T: [[0,1,0], [1,1,1], [0,0,0]],
       Z: [[1,1,0], [0,1,1], [0,0,0]]
     };
 
@@ -220,33 +220,69 @@
       generateTintedTextures();
     };
 
-    // Pre-renders tinted versions of textures/part.png for each piece color
-    function generateTintedTextures() {
-      const w = textureImg.width || 10;
-      const h = textureImg.height || 10;
+    function hexToRgb(hex) {
+      const num = parseInt(hex.replace('#', ''), 16);
+      return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+    }
 
-      for (const [type, hex] of Object.entries(PIECE_COLORS)) {
-        const c = document.createElement('canvas');
-        c.width = w;
-        c.height = h;
-        const ctx = c.getContext('2d');
-        ctx.imageSmoothingEnabled = false;
 
-        // Draw texture base
-        ctx.drawImage(textureImg, 0, 0);
 
-        // Tint overlay
-        ctx.globalCompositeOperation = 'source-atop';
-        ctx.fillStyle = hex;
-        ctx.fillRect(0, 0, w, h);
 
-        // Preserve original shading/highlights by blending with multiply
-        ctx.globalCompositeOperation = 'multiply';
-        ctx.drawImage(textureImg, 0, 0);
+    // Pre-renders tinted versions of textures/part.png for each piece color
+    function generateTintedTextures() {
+      const w = textureImg.width || 10;
+      const h = textureImg.height || 10;
 
-        tintCache[type] = c;
-      }
-    }
+
+
+
+      const srcCanvas = document.createElement('canvas');
+      srcCanvas.width = w;
+      srcCanvas.height = h;
+      const srcCtx = srcCanvas.getContext('2d');
+      srcCtx.drawImage(textureImg, 0, 0);
+      const srcData = srcCtx.getImageData(0, 0, w, h);
+
+
+
+
+      for (const [type, hex] of Object.entries(PIECE_COLORS)) {
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d');
+        const imgData = ctx.createImageData(w, h);
+        const targetRgb = hexToRgb(hex);
+
+
+
+
+        for (let i = 0; i < srcData.data.length; i += 4) {
+          const r = srcData.data[i];
+          const g = srcData.data[i + 1];
+          const b = srcData.data[i + 2];
+          const a = srcData.data[i + 3];
+
+
+
+
+          if (a > 0) {
+            // Extract brightness intensity from original texture (red, gray, or any base color)
+            const lightness = Math.max(r, g, b) / 255;
+            imgData.data[i] = Math.min(255, targetRgb.r * lightness);
+            imgData.data[i + 1] = Math.min(255, targetRgb.g * lightness);
+            imgData.data[i + 2] = Math.min(255, targetRgb.b * lightness);
+            imgData.data[i + 3] = a;
+          }
+        }
+
+
+
+
+        ctx.putImageData(imgData, 0, 0);
+        tintCache[type] = c;
+      }
+    }
 
     /* ==========================================
        5. ENGINE & GAME LOGIC
@@ -308,6 +344,21 @@
       }
     }
 
+    function getGhostPosition() {
+      if (!currentPiece) return null;
+      const ghost = {
+        type: currentPiece.type,
+        matrix: currentPiece.matrix,
+        x: currentPiece.x,
+        y: currentPiece.y
+      };
+      while (!collide(grid, ghost)) {
+        ghost.y++;
+      }
+      ghost.y--;
+      return ghost;
+    }
+
     function draw() {
       // Clear board
       ctx.fillStyle = '#000000';
@@ -328,6 +379,22 @@
           if (grid[r][c]) {
             drawBlock(ctx, c, r, grid[r][c]);
           }
+        }
+      }
+
+      // Draw Ghost Piece
+      if (currentPiece) {
+        const ghost = getGhostPosition();
+        if (ghost) {
+          ctx.globalAlpha = 0.3;
+          ghost.matrix.forEach((row, y) => {
+            row.forEach((val, x) => {
+              if (val) {
+                drawBlock(ctx, ghost.x + x, ghost.y + y, ghost.type);
+              }
+            });
+          });
+          ctx.globalAlpha = 1.0;
         }
       }
 
@@ -483,6 +550,8 @@
         document.getElementById('score').innerText = score;
         document.getElementById('lines').innerText = lines;
         document.getElementById('level').innerText = level;
+        nextPiece = getRandomPiece();
+        currentPiece = getRandomPiece();
         gameOver = false;
       }
     }
@@ -491,6 +560,7 @@
        6. MAIN GAME LOOP
        ========================================== */
     function update(time = 0) {
+      if (!lastTime) lastTime = time;
       const deltaTime = time - lastTime;
       lastTime = time;
 
@@ -520,8 +590,14 @@
     // iPad / Mobile Touch Control Listeners
     function bindTouch(id, action) {
       const btn = document.getElementById(id);
+      let isTouch = false;
       const execute = (e) => {
         e.preventDefault();
+        if (e.type === 'touchstart') isTouch = true;
+        else if (e.type === 'mousedown' && isTouch) {
+          isTouch = false;
+          return;
+        }
         if (!gameOver) action();
       };
       btn.addEventListener('touchstart', execute, { passive: false });
