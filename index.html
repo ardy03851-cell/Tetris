@@ -853,6 +853,42 @@
       return createPiece(rand);
     }
 
+    function drawBombEffects(context, px, py, size) {
+      const time = performance.now();
+      const pulse = (Math.sin(time * 0.005) + 1) / 2;
+      const growAmount = 1 + pulse * 1.5;
+
+      // 1. Red Pixel Pulsing & Growing Bloom
+      context.save();
+      context.globalCompositeOperation = 'lighter';
+      const cx = px + size / 2;
+      const cy = py + size / 2;
+      const radGrad = context.createRadialGradient(cx, cy, 2, cx, cy, (size / 2) * growAmount);
+      radGrad.addColorStop(0, `rgba(255, 30, 30, ${0.65 + pulse * 0.35})`);
+      radGrad.addColorStop(0.5, `rgba(255, 0, 50, ${0.35 + pulse * 0.25})`);
+      radGrad.addColorStop(1, 'rgba(255, 0, 0, 0)');
+
+      context.fillStyle = radGrad;
+      context.fillRect(px - 4, py - 4, size + 8, size + 8);
+      context.restore();
+
+      // 2. Reflective Light Sheen Sweep Across Surface
+      context.save();
+      context.beginPath();
+      context.rect(px, py, size, size);
+      context.clip();
+
+      const sweep = ((time * 0.06) % (size * 2.5)) - size * 0.75;
+      const grad = context.createLinearGradient(px + sweep, py, px + sweep + size * 0.4, py + size);
+      grad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+      grad.addColorStop(0.5, `rgba(255, 220, 230, ${0.45 + pulse * 0.25})`);
+      grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+      context.fillStyle = grad;
+      context.fillRect(px, py, size, size);
+      context.restore();
+    }
+
     function drawBlock(context, x, y, type, size = BLOCK_SIZE) {
       const px = x * size;
       const py = y * size;
@@ -870,6 +906,10 @@
         context.fillStyle = 'rgba(0, 0, 0, 0.25)';
         context.fillRect(px + size - 3, py, 3, size);
         context.fillRect(px, py + size - 3, size, 3);
+      }
+
+      if (type === 'EXPLOSIVE' || type === 'BIG_BOMB') {
+        drawBombEffects(context, px, py, size);
       }
     }
 
@@ -934,24 +974,25 @@
 
 
 
-              if (is2x2) {
-                for (let dr = 0; dr < 2; dr++) {
-                  for (let dc = 0; dc < 2; dc++) {
-                    drawnBigBombs.add(`${r + dr},${c + dc}`);
-                  }
-                }
-                const px = c * BLOCK_SIZE;
-                const py = r * BLOCK_SIZE;
-                const bSize = BLOCK_SIZE * 2;
-                if (treasureImages['BIG_BOMB'] && treasureImages['BIG_BOMB'].complete && treasureImages['BIG_BOMB'].naturalWidth !== 0) {
-                  ctx.drawImage(treasureImages['BIG_BOMB'], px, py, bSize, bSize);
-                } else {
-                  ctx.fillStyle = '#ff0055';
-                  ctx.fillRect(px, py, bSize, bSize);
-                  ctx.strokeStyle = '#ffffff';
-                  ctx.strokeRect(px, py, bSize, bSize);
-                }
-              } else {
+if (is2x2) {
+                for (let dr = 0; dr < 2; dr++) {
+                  for (let dc = 0; dc < 2; dc++) {
+                    drawnBigBombs.add(`${r + dr},${c + dc}`);
+                  }
+                }
+                const px = c * BLOCK_SIZE;
+                const py = r * BLOCK_SIZE;
+                const bSize = BLOCK_SIZE * 2;
+                if (treasureImages['BIG_BOMB'] && treasureImages['BIG_BOMB'].complete && treasureImages['BIG_BOMB'].naturalWidth !== 0) {
+                  ctx.drawImage(treasureImages['BIG_BOMB'], px, py, bSize, bSize);
+                } else {
+                  ctx.fillStyle = '#ff0055';
+                  ctx.fillRect(px, py, bSize, bSize);
+                  ctx.strokeStyle = '#ffffff';
+                  ctx.strokeRect(px, py, bSize, bSize);
+                }
+                drawBombEffects(ctx, px, py, bSize);
+              } else {
                 drawBlock(ctx, c, r, type);
               }
             } else {
