@@ -152,7 +152,7 @@
     .main-menu {
       position: fixed;
       inset: 0;
-      background: url('tetrisp.png') no-repeat center center / cover;
+      background: url('textures/tetrisp.png') no-repeat center center / cover;
       display: flex;
       align-items: center;
       justify-content: flex-start;
@@ -914,49 +914,52 @@
       }
 
       // Draw Locked Grid Blocks
-      const drawnBigBombs = new Set();
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
-          const type = grid[r][c];
-          if (type && !drawnBigBombs.has(`${r},${c}`)) {
-            if (type === 'BIG_BOMB') {
-              let is4x4 = true;
-              for (let dr = 0; dr < 4; dr++) {
-                for (let dc = 0; dc < 4; dc++) {
-                  if (r + dr >= ROWS || c + dc >= COLS || grid[r + dr][c + dc] !== 'BIG_BOMB') {
-                    is4x4 = false;
-                    break;
-                  }
-                }
-                if (!is4x4) break;
-              }
+      const drawnBigBombs = new Set();
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const type = grid[r][c];
+          if (type && !drawnBigBombs.has(`${r},${c}`)) {
+            if (type === 'BIG_BOMB') {
+              let is2x2 = true;
+              for (let dr = 0; dr < 2; dr++) {
+                for (let dc = 0; dc < 2; dc++) {
+                  if (r + dr >= ROWS || c + dc >= COLS || grid[r + dr][c + dc] !== 'BIG_BOMB') {
+                    is2x2 = false;
+                    break;
+                  }
+                }
+                if (!is2x2) break;
+              }
 
-              if (is4x4) {
-                for (let dr = 0; dr < 4; dr++) {
-                  for (let dc = 0; dc < 4; dc++) {
-                    drawnBigBombs.add(`${r + dr},${c + dc}`);
-                  }
-                }
-                const px = c * BLOCK_SIZE;
-                const py = r * BLOCK_SIZE;
-                const bSize = BLOCK_SIZE * 4;
-                if (treasureImages['BIG_BOMB'] && treasureImages['BIG_BOMB'].complete && treasureImages['BIG_BOMB'].naturalWidth !== 0) {
-                  ctx.drawImage(treasureImages['BIG_BOMB'], px, py, bSize, bSize);
-                } else {
-                  ctx.fillStyle = '#ff0055';
-                  ctx.fillRect(px, py, bSize, bSize);
-                  ctx.strokeStyle = '#ffffff';
-                  ctx.strokeRect(px, py, bSize, bSize);
-                }
-              } else {
-                drawBlock(ctx, c, r, type);
-              }
-            } else {
-              drawBlock(ctx, c, r, type);
-            }
-          }
-        }
-      }
+
+
+
+              if (is2x2) {
+                for (let dr = 0; dr < 2; dr++) {
+                  for (let dc = 0; dc < 2; dc++) {
+                    drawnBigBombs.add(`${r + dr},${c + dc}`);
+                  }
+                }
+                const px = c * BLOCK_SIZE;
+                const py = r * BLOCK_SIZE;
+                const bSize = BLOCK_SIZE * 2;
+                if (treasureImages['BIG_BOMB'] && treasureImages['BIG_BOMB'].complete && treasureImages['BIG_BOMB'].naturalWidth !== 0) {
+                  ctx.drawImage(treasureImages['BIG_BOMB'], px, py, bSize, bSize);
+                } else {
+                  ctx.fillStyle = '#ff0055';
+                  ctx.fillRect(px, py, bSize, bSize);
+                  ctx.strokeStyle = '#ffffff';
+                  ctx.strokeRect(px, py, bSize, bSize);
+                }
+              } else {
+                drawBlock(ctx, c, r, type);
+              }
+            } else {
+              drawBlock(ctx, c, r, type);
+            }
+          }
+        }
+      }
 
       // Draw Ghost Piece
       if (currentPiece) {
@@ -1148,26 +1151,26 @@
     }
 
     function checkBigBombs() {
-      for (let r = 0; r <= ROWS - 4; r++) {
-        for (let c = 0; c <= COLS - 4; c++) {
-          let is4x4 = true;
-          for (let dr = 0; dr < 4; dr++) {
-            for (let dc = 0; dc < 4; dc++) {
+      for (let r = 0; r <= ROWS - 2; r++) {
+        for (let c = 0; c <= COLS - 2; c++) {
+          let is2x2 = true;
+          for (let dr = 0; dr < 2; dr++) {
+            for (let dc = 0; dc < 2; dc++) {
               if (grid[r + dr][c + dc] !== 'EXPLOSIVE') {
-                is4x4 = false;
+                is2x2 = false;
                 break;
               }
             }
-            if (!is4x4) break;
+            if (!is2x2) break;
           }
-          if (is4x4) {
-            for (let dr = 0; dr < 4; dr++) {
-              for (let dc = 0; dc < 4; dc++) {
+          if (is2x2) {
+            for (let dr = 0; dr < 2; dr++) {
+              for (let dc = 0; dc < 2; dc++) {
                 grid[r + dr][c + dc] = 'BIG_BOMB';
               }
             }
-            addFloatingText('BIG BOMB!', (c + 2) * BLOCK_SIZE, (r + 2) * BLOCK_SIZE, '#ff0055');
-            triggerShake(8, 15);
+            addFloatingText('BIG BOMB!', (c + 1) * BLOCK_SIZE, (r + 1) * BLOCK_SIZE, '#ff0055');
+            triggerShake(12, 18);
           }
         }
       }
@@ -1195,10 +1198,10 @@
         const py = r * BLOCK_SIZE + BLOCK_SIZE / 2;
 
         const isBig = (type === 'BIG_BOMB');
-        const radius = isBig ? 3 : 1;
+        const radius = isBig ? 4 : 1;
 
         createPixelExplosion(px, py, isBig ? '#ff0055' : '#ff3300');
-        triggerShake(isBig ? 14 : 7, isBig ? 20 : 12);
+        triggerShake(isBig ? 20 : 7, isBig ? 30 : 12);
         addFloatingText(isBig ? 'MEGA BOOM!' : 'BOOM!', px, py, '#ffea00');
 
         for (let dr = -radius; dr <= radius; dr++) {
