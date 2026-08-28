@@ -90,12 +90,13 @@
     .touch-controls {
       display: none;
       position: fixed;
-      bottom: 12px;
+      bottom: 20px;
       left: 0;
       right: 0;
-      padding: 0 20px;
+      padding: 0 28px;
       justify-content: space-between;
       pointer-events: none;
+      z-index: 100;
     }
 
     @media (pointer: coarse),
@@ -107,35 +108,42 @@
 
     .control-group {
       display: flex;
-      gap: 8px;
+      gap: 12px;
       pointer-events: auto;
     }
 
     .btn {
-      background: var(--panel-bg);
-      border: 2px solid #444;
+      background: rgba(30, 30, 40, 0.85);
+      border: 3px solid #555;
       color: white;
       font-family: var(--font-family);
-      font-size: 20px;
+      font-size: 22px;
       font-weight: bold;
-      border-radius: 8px;
-      width: 60px;
-      height: 60px;
+      border-radius: 12px;
+      width: 68px;
+      height: 68px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 0 #111;
-      transition: background 0.05s, transform 0.05s;
+      box-shadow: 0 6px 0 #111, inset 0 2px 0 rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(4px);
+      transition: background 0.08s, transform 0.05s, border-color 0.08s;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    .btn:active {
+    .btn:active,
+    .btn.active {
       transform: translateY(4px);
-      box-shadow: 0 0 0 #111;
+      box-shadow: 0 2px 0 #111;
       background: var(--accent-color);
+      border-color: #7b82ff;
     }
 
     .btn-wide {
-      width: 90px;
+      width: 105px;
+      font-size: 15px;
+      letter-spacing: 0.5px;
     }
   </style>
 </head>
@@ -165,6 +173,13 @@
       <div class="panel">
         <h3>Level</h3>
         <p id="level">1</p>
+      </div>
+      <div class="panel">
+        <h3>Parts</h3>
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:2px;">
+          <img id="parts-icon" src="textures/part.png" alt="Part" style="width:20px;height:20px;image-rendering:pixelated;transition:transform 0.1s ease;">
+          <p id="parts-count">0</p>
+        </div>
       </div>
     </div>
   </div>
@@ -333,13 +348,186 @@
     let score = 0;
     let lines = 0;
     let level = 1;
+    let partsBroken = 0;
     let gameOver = false;
+
+    function incrementParts() {
+      partsBroken++;
+      const countEl = document.getElementById('parts-count');
+      if (countEl) countEl.innerText = partsBroken;
+      const iconEl = document.getElementById('parts-icon');
+      if (iconEl) {
+        iconEl.style.transform = 'scale(1.35)';
+        setTimeout(() => { iconEl.style.transform = 'scale(1)'; }, 100);
+      }
+    }
+
+    function spawnFlyingPart(startX, startY) {
+      const el = document.createElement('img');
+      el.src = 'textures/part.png';
+      el.style.position = 'fixed';
+      el.style.left = startX + 'px';
+      el.style.top = startY + 'px';
+      el.style.width = '20px';
+      el.style.height = '20px';
+      el.style.pointerEvents = 'none';
+      el.style.zIndex = '1000';
+      el.style.imageRendering = 'pixelated';
+      el.style.transform = 'translate(-50%, -50%) scale(1)';
+      document.body.appendChild(el);
+
+      // Arc fling trajectory parameters
+      const angle = (Math.random() - 0.5) * Math.PI * 1.2 - Math.PI / 2;
+      const flingDist = 30 + Math.random() * 50;
+      const controlX = startX + Math.cos(angle) * flingDist;
+      const controlY = startY + Math.sin(angle) * flingDist;
+
+      const startTime = performance.now();
+      const duration = 650 + Math.random() * 250;
+
+      function animate(now) {
+        const elapsed = now - startTime;
+        const t = Math.min(1, elapsed / duration);
+
+        const iconEl = document.getElementById('parts-icon');
+        const targetRect = iconEl ? iconEl.getBoundingClientRect() : { left: startX, top: startY, width: 20, height: 20 };
+        const endX = targetRect.left + targetRect.width / 2;
+        const endY = targetRect.top + targetRect.height / 2;
+
+        // Smooth Quadratic Bezier curve calculation
+        const curX = (1 - t) * (1 - t) * startX + 2 * (1 - t) * t * controlX + t * t * endX;
+        const curY = (1 - t) * (1 - t) * startY + 2 * (1 - t) * t * controlY + t * t * endY;
+
+        const scale = 1.2 - 0.3 * t;
+        const rot = t * 360 * (controlX > startX ? 1 : -1);
+
+        el.style.left = curX + 'px';
+        el.style.top = curY + 'px';
+        el.style.transform = `translate(-50%, -50%) scale(${scale}) rotate(${rot}deg)`;
+        el.style.opacity = t > 0.85 ? (1 - t) / 0.15 : 1;
+
+        if (t < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          el.remove();
+          incrementParts();
+        }
+      }
+
+      setTimeout(() => {
+        requestAnimationFrame(animate);
+      }, Math.random() * 120);
+    }
     let dropCounter = 0;
     let dropInterval = 1000;
     let lastTime = 0;
 
     let currentPiece = null;
     let nextPiece = null;
+
+    // High-Quality Custom Particle & Motion FX Engine
+    let particles = [];
+    let floatingTexts = [];
+    let shakeDuration = 0;
+    let shakeMagnitude = 0;
+
+    function triggerShake(magnitude = 5, duration = 12) {
+      shakeMagnitude = magnitude;
+      shakeDuration = duration;
+    }
+
+    function createPixelExplosion(x, y, color) {
+      // High density burst with varied particle archetypes & physics
+      const count = 35 + Math.floor(Math.random() * 15);
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 1.5 + Math.random() * 6.5;
+        const isSpark = Math.random() < 0.35;
+        const isEmber = !isSpark && Math.random() < 0.3;
+
+        particles.push({
+          x: x + (Math.random() - 0.5) * 8,
+          y: y + (Math.random() - 0.5) * 8,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - (isSpark ? 3.0 : 1.5),
+          gravity: isSpark ? 0.12 : (isEmber ? 0.08 : 0.26),
+          drag: isSpark ? 0.93 : 0.96,
+          bounce: isSpark ? 0.2 : 0.55,
+          size: isSpark ? 2 : (isEmber ? Math.floor(Math.random() * 2) + 2 : Math.floor(Math.random() * 3) + 3),
+          color: color,
+          type: isSpark ? 'spark' : (isEmber ? 'ember' : 'block'),
+          vRot: (Math.random() - 0.5) * 0.3,
+          wobbleFreq: 0.1 + Math.random() * 0.2,
+          wobbleAmp: Math.random() * 0.8,
+          life: 1.0,
+          decay: isSpark ? (0.03 + Math.random() * 0.04) : (0.015 + Math.random() * 0.02)
+        });
+      }
+    }
+
+    function addFloatingText(text, x, y, color = '#ffea00') {
+      floatingTexts.push({
+        text: text,
+        x: x,
+        y: y,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: -3.2,
+        scale: 0.2,
+        targetScale: 1.0,
+        life: 1.0,
+        decay: 0.014,
+        color: color,
+        wobblePhase: Math.random() * Math.PI * 2
+      });
+    }
+
+    function updateFX() {
+      if (shakeDuration > 0) shakeDuration--;
+
+      // Advanced physical simulation: drag, gravity, spin, bounce, boundaries
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.vx *= p.drag;
+        p.vy *= p.drag;
+        p.vy += p.gravity;
+
+        if (p.type !== 'block') {
+          p.vx += Math.sin(p.life * 20 * p.wobbleFreq) * p.wobbleAmp * 0.1;
+        }
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Wall & Floor collisions
+        if (p.y >= canvas.height - p.size) {
+          p.y = canvas.height - p.size;
+          p.vy = -p.vy * p.bounce;
+          p.vx *= 0.65;
+        }
+        if (p.x <= 0 || p.x >= canvas.width - p.size) {
+          p.vx = -p.vx * p.bounce;
+          p.x = Math.max(0, Math.min(canvas.width - p.size, p.x));
+        }
+
+        p.life -= p.decay;
+        if (p.life <= 0) particles.splice(i, 1);
+      }
+
+      // Smooth floating text physics with pop scaling & sine floating dynamics
+      for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        const ft = floatingTexts[i];
+        ft.x += ft.vx + Math.sin(ft.life * 12 + ft.wobblePhase) * 0.35;
+        ft.y += ft.vy;
+        ft.vy *= 0.93;
+
+        if (ft.scale < ft.targetScale) {
+          ft.scale += (ft.targetScale - ft.scale) * 0.35;
+        }
+
+        ft.life -= ft.decay;
+        if (ft.life <= 0) floatingTexts.splice(i, 1);
+      }
+    }
 
     function createGrid() {
       return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
@@ -399,6 +587,17 @@
     }
 
     function draw() {
+      updateFX();
+
+      ctx.save();
+
+      // Pixelated Camera Shake
+      if (shakeDuration > 0) {
+        const shakeX = Math.floor((Math.random() - 0.5) * shakeMagnitude * 2);
+        const shakeY = Math.floor((Math.random() - 0.5) * shakeMagnitude * 2);
+        ctx.translate(shakeX, shakeY);
+      }
+
       // Clear board
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -448,6 +647,74 @@
         });
       }
 
+      // Render High-Quality Pixel Particles
+      particles.forEach(p => {
+        const px = Math.floor(p.x);
+        const py = Math.floor(p.y);
+        const currentSize = Math.max(1, Math.floor(p.size * Math.min(1, p.life * 1.2)));
+        ctx.globalAlpha = Math.max(0, Math.min(1, p.life));
+
+        if (p.type === 'spark') {
+          // Intense core spark with color tint
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(px, py, currentSize, currentSize);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(px - 1, py, 1, currentSize);
+          ctx.fillRect(px + currentSize, py, 1, currentSize);
+        } else if (p.type === 'ember') {
+          // Soft glowing pixel ember
+          ctx.fillStyle = p.color;
+          ctx.fillRect(px, py, currentSize, currentSize);
+        } else {
+          // 3D Pixel Block Shards with light highlight and shadow
+          ctx.fillStyle = p.color;
+          ctx.fillRect(px, py, currentSize, currentSize);
+
+          // Top-Left highlight
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          ctx.fillRect(px, py, Math.max(1, currentSize - 1), 1);
+          ctx.fillRect(px, py, 1, Math.max(1, currentSize - 1));
+
+          // Bottom-Right shadow
+          ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+          ctx.fillRect(px, py + currentSize - 1, currentSize, 1);
+          ctx.fillRect(px + currentSize - 1, py, 1, currentSize);
+        }
+      });
+      ctx.globalAlpha = 1.0;
+
+      // Render Modern Pixel Floating Text with Outline & Pop Scaling
+      floatingTexts.forEach(ft => {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, Math.min(1, ft.life));
+        ctx.translate(Math.floor(ft.x), Math.floor(ft.y));
+        ctx.scale(ft.scale, ft.scale);
+
+        ctx.font = '900 13px "Courier New", Courier, monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        // 1. Pixel Drop Shadow
+        ctx.fillStyle = '#000000';
+        ctx.fillText(ft.text, 2, 2);
+        ctx.fillText(ft.text, 2, 3);
+
+        // 2. Multi-Direction Pixel Outline
+        ctx.fillText(ft.text, -1, 0);
+        ctx.fillText(ft.text, 1, 0);
+        ctx.fillText(ft.text, 0, -1);
+        ctx.fillText(ft.text, 0, 1);
+
+        // 3. Crisp Foreground Color
+        ctx.fillStyle = ft.color;
+        ctx.fillText(ft.text, 0, 0);
+
+        ctx.restore();
+      });
+      ctx.globalAlpha = 1.0;
+
+      ctx.restore();
+
       // Draw Next Piece Preview
       nextCtx.fillStyle = '#1e1e28';
       nextCtx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
@@ -462,7 +729,7 @@
               if (textureLoaded && tintCache[nextPiece.type]) {
                 nextCtx.drawImage(tintCache[nextPiece.type], px, py, 16, 16);
               } else {
-                nextCtx.fillStyle = PIECE_COLORS[nextPiece.type];
+                nextCtx.fillStyle = PIECE_COLORS[nextPiece.type] || '#ffd700';
                 nextCtx.fillRect(px, py, 16, 16);
               }
             }
@@ -543,6 +810,7 @@
       }
       currentPiece.y--;
       merge(grid, currentPiece);
+      triggerShake(3, 5);
       clearLines();
       spawnPiece();
       dropCounter = 0;
@@ -550,23 +818,51 @@
 
     function clearLines() {
       let linesCleared = 0;
+      let lastClearedY = 0;
+
       outer: for (let y = ROWS - 1; y >= 0; y--) {
         for (let x = 0; x < COLS; x++) {
           if (!grid[y][x]) continue outer;
         }
+
+        // Spawn pixel particles & fling broken shape parts to menu
+        const canvasRect = canvas.getBoundingClientRect();
+        const scaleX = canvasRect.width / canvas.width;
+        const scaleY = canvasRect.height / canvas.height;
+
+        for (let x = 0; x < COLS; x++) {
+          const type = grid[y][x];
+          const color = PIECE_COLORS[type] || '#ffd700';
+          const px = x * BLOCK_SIZE + BLOCK_SIZE / 2;
+          const py = y * BLOCK_SIZE + BLOCK_SIZE / 2;
+          createPixelExplosion(px, py, color);
+
+          const screenX = canvasRect.left + px * scaleX;
+          const screenY = canvasRect.top + py * scaleY;
+          spawnFlyingPart(screenX, screenY);
+        }
+
         const row = grid.splice(y, 1)[0].fill(0);
         grid.unshift(row);
+        lastClearedY = y;
         y++;
         linesCleared++;
       }
 
       if (linesCleared > 0) {
-        // Standard Tetris scoring
+        // Standard Tetris scoring & FX
         const lineScores = [0, 40, 100, 300, 1200];
-        score += lineScores[linesCleared] * level;
+        const addedScore = lineScores[linesCleared] * level;
+        score += addedScore;
         lines += linesCleared;
         level = Math.floor(lines / 10) + 1;
         dropInterval = Math.max(100, 1000 - (level - 1) * 80);
+
+        triggerShake(4 + linesCleared * 3, 8 + linesCleared * 5);
+
+        const labels = ['', 'CLEAR!', 'DOUBLE!', 'TRIPLE!', 'TETRIS!'];
+        const label = labels[linesCleared] || 'BOOM!';
+        addFloatingText(`+${addedScore} ${label}`, canvas.width / 2, lastClearedY * BLOCK_SIZE + 12, '#ffea00');
 
         document.getElementById('score').innerText = score;
         document.getElementById('lines').innerText = lines;
@@ -585,10 +881,12 @@
         score = 0;
         lines = 0;
         level = 1;
+        partsBroken = 0;
         dropInterval = 1000;
         document.getElementById('score').innerText = score;
         document.getElementById('lines').innerText = lines;
         document.getElementById('level').innerText = level;
+        document.getElementById('parts-count').innerText = partsBroken;
         nextPiece = getRandomPiece();
         currentPiece = getRandomPiece();
         gameOver = false;
@@ -626,28 +924,51 @@
       if (e.code === 'Space') playerHardDrop();
     });
 
-    // iPad / Mobile Touch Control Listeners
-    function bindTouch(id, action) {
+    // iPad / Mobile Touch Control System with Hold Auto-Repeat & Responsive Feedback
+    function bindTouch(id, action, allowRepeat = false) {
       const btn = document.getElementById(id);
-      let isTouch = false;
-      const execute = (e) => {
-        e.preventDefault();
-        if (e.type === 'touchstart') isTouch = true;
-        else if (e.type === 'mousedown' && isTouch) {
-          isTouch = false;
-          return;
+      let repeatTimer = null;
+      let initialDelayTimer = null;
+
+      const startAction = (e) => {
+        if (e) e.preventDefault();
+        if (gameOver) return;
+
+        btn.classList.add('active');
+        action();
+
+        if (allowRepeat) {
+          clearInterval(repeatTimer);
+          clearTimeout(initialDelayTimer);
+          initialDelayTimer = setTimeout(() => {
+            repeatTimer = setInterval(() => {
+              if (!gameOver) action();
+            }, 80);
+          }, 180);
         }
-        if (!gameOver) action();
       };
-      btn.addEventListener('touchstart', execute, { passive: false });
-      btn.addEventListener('mousedown', execute);
+
+      const stopAction = (e) => {
+        if (e) e.preventDefault();
+        btn.classList.remove('active');
+        clearTimeout(initialDelayTimer);
+        clearInterval(repeatTimer);
+      };
+
+      btn.addEventListener('touchstart', startAction, { passive: false });
+      btn.addEventListener('touchend', stopAction, { passive: false });
+      btn.addEventListener('touchcancel', stopAction, { passive: false });
+
+      btn.addEventListener('mousedown', startAction);
+      btn.addEventListener('mouseup', stopAction);
+      btn.addEventListener('mouseleave', stopAction);
     }
 
-    bindTouch('btn-left', () => playerMove(-1));
-    bindTouch('btn-right', () => playerMove(1));
-    bindTouch('btn-down', () => playerDrop());
-    bindTouch('btn-rotate', () => playerRotate());
-    bindTouch('btn-drop', () => playerHardDrop());
+    bindTouch('btn-left', () => playerMove(-1), true);
+    bindTouch('btn-right', () => playerMove(1), true);
+    bindTouch('btn-down', () => playerDrop(), true);
+    bindTouch('btn-rotate', () => playerRotate(), false);
+    bindTouch('btn-drop', () => playerHardDrop(), false);
 
     // Init Game
     spawnPiece();
