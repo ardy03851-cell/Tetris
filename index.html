@@ -147,6 +147,10 @@
 
     <div class="sidebar">
       <div class="panel">
+        <h3>Mode</h3>
+        <button id="mode-btn" onclick="toggleMode()" style="background:var(--accent-color);color:#fff;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:bold;width:100%;">CLASSIC</button>
+      </div>
+      <div class="panel">
         <h3>Next</h3>
         <canvas id="next" width="80" height="80"></canvas>
       </div>
@@ -203,8 +207,38 @@
       O: [[1,1], [1,1]],
       S: [[0,1,1], [1,1,0], [0,0,0]],
       T: [[0,1,0], [1,1,1], [0,0,0]],
-      Z: [[1,1,0], [0,1,1], [0,0,0]]
+      Z: [[1,1,0], [0,1,1], [0,0,0]],
+      GOLD: [[1]],
+      DIAMOND: [[1]],
+      CRYSTAL: [[1]],
+      EMERALD: [[1]],
+      RUBY: [[1]],
+      EXPLOSIVE: [[1]]
     };
+
+    const TREASURE_TYPES = ['GOLD', 'DIAMOND', 'CRYSTAL', 'EMERALD', 'RUBY', 'EXPLOSIVE'];
+    const treasureImages = {};
+    const treasureFiles = {
+      GOLD: 'textures/gold.png',
+      DIAMOND: 'textures/diamon.png',
+      CRYSTAL: 'textures/crystal.png',
+      EMERALD: 'textures/emerald.png',
+      RUBY: 'textures/ruby.png',
+      EXPLOSIVE: 'textures/explosive.png'
+    };
+
+    Object.entries(treasureFiles).forEach(([type, src]) => {
+      const img = new Image();
+      img.src = src;
+      treasureImages[type] = img;
+    });
+
+    let gameMode = 'CLASSIC';
+
+    function toggleMode() {
+      gameMode = gameMode === 'CLASSIC' ? 'TREASURE' : 'CLASSIC';
+      document.getElementById('mode-btn').innerText = gameMode === 'TREASURE' ? 'TREASURE' : 'CLASSIC';
+    }
 
     /* ==========================================
        4. TEXTURE LOADER & TINT SYSTEM
@@ -321,7 +355,10 @@
     }
 
     function getRandomPiece() {
-      const pieces = Object.keys(SHAPES);
+      let pieces = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
+      if (gameMode === 'TREASURE') {
+        pieces = pieces.concat(TREASURE_TYPES);
+      }
       const rand = pieces[Math.floor(Math.random() * pieces.length)];
       return createPiece(rand);
     }
@@ -330,11 +367,13 @@
       const px = x * size;
       const py = y * size;
 
-      if (textureLoaded && tintCache[type]) {
+      if (treasureImages[type] && treasureImages[type].complete && treasureImages[type].naturalWidth !== 0) {
+        context.drawImage(treasureImages[type], px, py, size, size);
+      } else if (textureLoaded && tintCache[type]) {
         context.drawImage(tintCache[type], px, py, size, size);
       } else {
-        // Fallback vector block rendering if textures/part.png is not found
-        context.fillStyle = PIECE_COLORS[type] || '#fff';
+        // Fallback vector block rendering if textures are not found
+        context.fillStyle = PIECE_COLORS[type] || '#ffd700';
         context.fillRect(px, py, size, size);
         context.strokeStyle = 'rgba(255, 255, 255, 0.4)';
         context.strokeRect(px, py, size, size);
