@@ -43,44 +43,45 @@
       image-rendering: pixelated;
       image-rendering: crisp-edges;
       background-color: #000000;
-      border: 4px solid #333;
-      border-radius: 4px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      border: 4px solid #555;
+      border-radius: 0;
+      box-shadow: 6px 6px 0 #000;
     }
 
     .game-layout {
       display: flex;
       flex-direction: row;
-      gap: 16px;
+      gap: 20px;
       align-items: flex-start;
     }
 
     .sidebar {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      width: 120px;
+      gap: 14px;
+      width: 140px;
     }
 
     .panel {
       background: var(--panel-bg);
-      border: 2px solid #333;
-      border-radius: 4px;
-      padding: 10px;
+      border: 4px solid #444;
+      border-radius: 0;
+      padding: 12px 10px;
       text-align: center;
+      box-shadow: 4px 4px 0 #000;
     }
 
     .panel h3 {
       margin: 0 0 6px 0;
-      font-size: 12px;
+      font-size: 13px;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #888;
+      letter-spacing: 1.5px;
+      color: #aaa;
     }
 
     .panel p {
       margin: 0;
-      font-size: 18px;
+      font-size: 22px;
       font-weight: bold;
     }
 
@@ -113,20 +114,19 @@
     }
 
     .btn {
-      background: rgba(30, 30, 40, 0.85);
-      border: 3px solid #555;
+      background: #1e1e28;
+      border: 4px solid #555;
       color: white;
       font-family: var(--font-family);
-      font-size: 22px;
+      font-size: 24px;
       font-weight: bold;
-      border-radius: 12px;
-      width: 68px;
-      height: 68px;
+      border-radius: 0;
+      width: 72px;
+      height: 72px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 6px 0 #111, inset 0 2px 0 rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(4px);
+      box-shadow: 0 6px 0 #000, 4px 4px 0 #000;
       transition: background 0.08s, transform 0.05s, border-color 0.08s;
       outline: none;
       -webkit-tap-highlight-color: transparent;
@@ -135,28 +135,198 @@
     .btn:active,
     .btn.active {
       transform: translateY(4px);
-      box-shadow: 0 2px 0 #111;
+      box-shadow: 0 2px 0 #000, 2px 2px 0 #000;
       background: var(--accent-color);
       border-color: #7b82ff;
     }
 
     .btn-wide {
-      width: 105px;
-      font-size: 15px;
-      letter-spacing: 0.5px;
+      width: 120px;
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
+
+    /* ==========================================
+       MAIN MENU STYLING
+       ========================================== */
+    .main-menu {
+      position: fixed;
+      inset: 0;
+      background: rgba(14, 14, 20, 0.96);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+    }
+
+    .menu-card {
+      background: var(--panel-bg);
+      border: 6px solid #4e54c8;
+      border-radius: 0;
+      padding: 36px 30px;
+      width: 360px;
+      text-align: center;
+      position: relative;
+      box-shadow: 8px 8px 0 #000;
+    }
+
+    .decor-part {
+      position: absolute;
+      width: 36px;
+      height: 36px;
+      image-rendering: pixelated;
+      animation: floatDecor 3s ease-in-out infinite alternate;
+    }
+
+    .decor-1 {
+      top: -18px;
+      left: -18px;
+      transform: rotate(-15deg);
+    }
+
+    .decor-2 {
+      top: -18px;
+      right: -18px;
+      transform: rotate(15deg);
+      animation-delay: 1.5s;
+    }
+
+    @keyframes floatDecor {
+      0% {
+        transform: translateY(0) rotate(-10deg);
+      }
+
+      100% {
+        transform: translateY(-8px) rotate(10deg);
+      }
+    }
+
+    .menu-title {
+      font-size: 32px;
+      margin: 0 0 6px 0;
+      letter-spacing: 4px;
+      color: #ffea00;
+      text-shadow: 3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000;
+    }
+
+    .menu-subtitle {
+      font-size: 14px;
+      color: #aaa;
+      letter-spacing: 2px;
+      margin: 0 0 24px 0;
+      font-weight: bold;
+    }
+
+    .mode-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .mode-card {
+      background: #15151e;
+      border: 4px solid #444;
+      border-radius: 0;
+      padding: 14px 16px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.1s ease;
+      color: var(--text-color);
+      font-family: inherit;
+      box-shadow: 4px 4px 0 #000;
+    }
+
+    .mode-card:hover,
+    .mode-card.active {
+      border-color: #7b82ff;
+      background: #252538;
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 #000;
+    }
+
+    .mode-card.active {
+      background: var(--accent-color);
+      border-color: #ffffff;
+    }
+
+    .mode-name {
+      font-size: 16px;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    .mode-desc {
+      font-size: 11px;
+      opacity: 0.85;
+      margin-top: 4px;
+    }
+
+    .play-btn {
+      width: 100%;
+      background: #00c853;
+      border: 4px solid #005020;
+      color: #fff;
+      font-family: inherit;
+      font-size: 18px;
+      font-weight: bold;
+      padding: 14px;
+      border-radius: 0;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #003310, 4px 6px 0 #000;
+      transition: all 0.08s ease;
+      letter-spacing: 2px;
+    }
+
+    .play-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #003310, 4px 2px 0 #000;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="game-layout">
+  <div id="main-menu" class="main-menu">
+    <div class="menu-card">
+      <img src="textures/part.png" alt="decor" class="decor-part decor-1">
+      <img src="textures/gold.png" alt="decor" class="decor-part decor-2">
+      <h1 class="menu-title">TETRIS</h1>
+      <p class="menu-subtitle">SELECT MODE</p>
+
+      <div class="mode-options">
+        <button class="mode-card active" id="mode-classic" onclick="selectMenuMode('CLASSIC')">
+          <span class="mode-name">CLASSIC</span>
+          <span class="mode-desc">Standard Tetris Pieces</span>
+        </button>
+        <button class="mode-card" id="mode-treasure" onclick="selectMenuMode('TREASURE')">
+          <span class="mode-name">TREASURE</span>
+          <span class="mode-desc">Includes Gems & Explosives</span>
+        </button>
+        <button class="mode-card" id="mode-bombrush" onclick="selectMenuMode('BOMB RUSH')">
+          <span class="mode-name">BOMB RUSH</span>
+          <span class="mode-desc">Chain Reaction Explosions</span>
+        </button>
+        <button class="mode-card" id="mode-gemrush" onclick="selectMenuMode('GEM RUSH')">
+          <span class="mode-name">GEM RUSH</span>
+          <span class="mode-desc">Gems Only & Fast Paced</span>
+        </button>
+      </div>
+
+      <button class="play-btn" onclick="startGame()">PLAY NOW</button>
+    </div>
+  </div>
+
+  <div class="game-layout" id="game-layout" style="display: none;">
     <canvas id="tetris" width="240" height="480"></canvas>
 
     <div class="sidebar">
       <div class="panel">
         <h3>Mode</h3>
-        <button id="mode-btn" onclick="toggleMode()" style="background:var(--accent-color);color:#fff;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:bold;width:100%;">CLASSIC</button>
+        <button id="mode-btn" onclick="toggleMode()" style="background:var(--accent-color);color:#fff;border:3px solid #7b82ff;padding:8px;border-radius:0;cursor:pointer;font-family:inherit;font-size:12px;font-weight:bold;width:100%;box-shadow:2px 2px 0 #000;">CLASSIC</button>
+        <button onclick="returnToMenu()" style="background:#222;color:#ccc;border:3px solid #555;padding:6px;border-radius:0;cursor:pointer;font-family:inherit;font-size:11px;font-weight:bold;margin-top:8px;width:100%;box-shadow:2px 2px 0 #000;">MAIN MENU</button>
       </div>
       <div class="panel">
         <h3>Next</h3>
@@ -249,10 +419,56 @@
     });
 
     let gameMode = 'CLASSIC';
+    let isGameRunning = false;
+
+    function selectMenuMode(mode) {
+      gameMode = mode;
+      const modes = ['CLASSIC', 'TREASURE', 'BOMB RUSH', 'GEM RUSH'];
+      modes.forEach(m => {
+        const id = 'mode-' + m.toLowerCase().replace(' ', '');
+        const btn = document.getElementById(id);
+        if (btn) btn.classList.toggle('active', mode === m);
+      });
+      const modeBtn = document.getElementById('mode-btn');
+      if (modeBtn) modeBtn.innerText = gameMode;
+    }
 
     function toggleMode() {
-      gameMode = gameMode === 'CLASSIC' ? 'TREASURE' : 'CLASSIC';
-      document.getElementById('mode-btn').innerText = gameMode === 'TREASURE' ? 'TREASURE' : 'CLASSIC';
+      const modes = ['CLASSIC', 'TREASURE', 'BOMB RUSH', 'GEM RUSH'];
+      const nextIdx = (modes.indexOf(gameMode) + 1) % modes.length;
+      selectMenuMode(modes[nextIdx]);
+    }
+
+    function startGame() {
+      document.getElementById('main-menu').style.display = 'none';
+      document.getElementById('game-layout').style.display = 'flex';
+      isGameRunning = true;
+      resetGame();
+      lastTime = performance.now();
+      requestAnimationFrame(update);
+    }
+
+    function returnToMenu() {
+      isGameRunning = false;
+      document.getElementById('game-layout').style.display = 'none';
+      document.getElementById('main-menu').style.display = 'flex';
+    }
+
+    function resetGame() {
+      grid = createGrid();
+      score = 0;
+      lines = 0;
+      level = 1;
+      partsBroken = 0;
+      dropInterval = 1000;
+      gameOver = false;
+      document.getElementById('score').innerText = score;
+      document.getElementById('lines').innerText = lines;
+      document.getElementById('level').innerText = level;
+      const countEl = document.getElementById('parts-count');
+      if (countEl) countEl.innerText = partsBroken;
+      nextPiece = getRandomPiece();
+      currentPiece = getRandomPiece();
     }
 
     /* ==========================================
@@ -431,7 +647,7 @@
     let shakeDuration = 0;
     let shakeMagnitude = 0;
 
-    function triggerShake(magnitude = 5, duration = 12) {
+    function triggerShake(magnitude = 2, duration = 12) {
       shakeMagnitude = magnitude;
       shakeDuration = duration;
     }
@@ -453,7 +669,7 @@
           gravity: isSpark ? 0.12 : (isEmber ? 0.08 : 0.26),
           drag: isSpark ? 0.93 : 0.96,
           bounce: isSpark ? 0.2 : 0.55,
-          size: isSpark ? 2 : (isEmber ? Math.floor(Math.random() * 2) + 2 : Math.floor(Math.random() * 3) + 3),
+          size: isSpark ? 10 : (isEmber ? Math.floor(Math.random() * 2) + 2 : Math.floor(Math.random() * 3) + 3),
           color: color,
           type: isSpark ? 'spark' : (isEmber ? 'ember' : 'block'),
           vRot: (Math.random() - 0.5) * 0.3,
@@ -546,6 +762,10 @@
       let pieces = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
       if (gameMode === 'TREASURE') {
         pieces = pieces.concat(TREASURE_TYPES);
+      } else if (gameMode === 'BOMB RUSH') {
+        pieces = ['I', 'J', 'L', 'O', 'S', 'T', 'Z', 'EXPLOSIVE', 'EXPLOSIVE', 'EXPLOSIVE'];
+      } else if (gameMode === 'GEM RUSH') {
+        pieces = ['GOLD', 'DIAMOND', 'CRYSTAL', 'EMERALD', 'RUBY', 'EXPLOSIVE'];
       }
       const rand = pieces[Math.floor(Math.random() * pieces.length)];
       return createPiece(rand);
@@ -793,11 +1013,77 @@
       }
     }
 
+    function handleExplosions() {
+      const queue = [];
+
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (grid[r][c] === 'EXPLOSIVE') {
+            queue.push({ r, c });
+          }
+        }
+      }
+
+      if (queue.length === 0) return;
+
+      const canvasRect = canvas.getBoundingClientRect();
+      const scaleX = canvasRect.width / canvas.width;
+      const scaleY = canvasRect.height / canvas.height;
+      const processed = new Set();
+      let totalDestroyed = 0;
+
+      while (queue.length > 0) {
+        const { r, c } = queue.shift();
+        const key = `${r},${c}`;
+        if (processed.has(key)) continue;
+        processed.add(key);
+
+        grid[r][c] = 0;
+        const px = c * BLOCK_SIZE + BLOCK_SIZE / 2;
+        const py = r * BLOCK_SIZE + BLOCK_SIZE / 2;
+        createPixelExplosion(px, py, '#ff3300');
+        triggerShake(7, 12);
+        addFloatingText('BOOM!', px, py, '#ffea00');
+
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            const nr = r + dr;
+            const nc = c + dc;
+            if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+              const targetType = grid[nr][nc];
+              if (targetType) {
+                if (targetType === 'EXPLOSIVE' && !processed.has(`${nr},${nc}`)) {
+                  queue.push({ r: nr, c: nc });
+                } else if (targetType !== 'EXPLOSIVE') {
+                  const targetPx = nc * BLOCK_SIZE + BLOCK_SIZE / 2;
+                  const targetPy = nr * BLOCK_SIZE + BLOCK_SIZE / 2;
+                  createPixelExplosion(targetPx, targetPy, PIECE_COLORS[targetType] || '#ffd700');
+
+                  const screenX = canvasRect.left + targetPx * scaleX;
+                  const screenY = canvasRect.top + targetPy * scaleY;
+                  spawnFlyingPart(screenX, screenY);
+
+                  grid[nr][nc] = 0;
+                  totalDestroyed++;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (totalDestroyed > 0) {
+        score += totalDestroyed * 50 * level;
+        document.getElementById('score').innerText = score;
+      }
+    }
+
     function playerDrop() {
       currentPiece.y++;
       if (collide(grid, currentPiece)) {
         currentPiece.y--;
         merge(grid, currentPiece);
+        handleExplosions();
         clearLines();
         spawnPiece();
       }
@@ -811,6 +1097,7 @@
       currentPiece.y--;
       merge(grid, currentPiece);
       triggerShake(3, 5);
+      handleExplosions();
       clearLines();
       spawnPiece();
       dropCounter = 0;
@@ -877,19 +1164,7 @@
       if (collide(grid, currentPiece)) {
         gameOver = true;
         alert('Game Over! Final Score: ' + score);
-        grid = createGrid();
-        score = 0;
-        lines = 0;
-        level = 1;
-        partsBroken = 0;
-        dropInterval = 1000;
-        document.getElementById('score').innerText = score;
-        document.getElementById('lines').innerText = lines;
-        document.getElementById('level').innerText = level;
-        document.getElementById('parts-count').innerText = partsBroken;
-        nextPiece = getRandomPiece();
-        currentPiece = getRandomPiece();
-        gameOver = false;
+        returnToMenu();
       }
     }
 
@@ -897,6 +1172,8 @@
        6. MAIN GAME LOOP
        ========================================== */
     function update(time = 0) {
+      if (!isGameRunning) return;
+
       if (!lastTime) lastTime = time;
       const deltaTime = time - lastTime;
       lastTime = time;
@@ -907,7 +1184,7 @@
       }
 
       draw();
-      if (!gameOver) {
+      if (!gameOver && isGameRunning) {
         requestAnimationFrame(update);
       }
     }
@@ -970,9 +1247,8 @@
     bindTouch('btn-rotate', () => playerRotate(), false);
     bindTouch('btn-drop', () => playerHardDrop(), false);
 
-    // Init Game
-    spawnPiece();
-    update();
+    // Init Game - Show Main Menu by default
+    selectMenuMode('CLASSIC');
   </script>
 </body>
 
