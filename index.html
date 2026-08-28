@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Pixel Art Tetris</title>
+  <title>Tetris</title>
   <style>
     /* ==========================================
        1. GAME CONFIG & STYLING (EASY TO EDIT)
@@ -152,19 +152,32 @@
     .main-menu {
       position: fixed;
       inset: 0;
-      background: rgba(14, 14, 20, 0.96);
+      background: url('tetrisp.png') no-repeat center center / cover;
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
+      padding: 20px 5vw;
+      overflow-y: auto;
       z-index: 500;
     }
 
+    @media (max-width: 850px),
+    (max-height: 700px) {
+      .main-menu {
+        justify-content: center;
+        padding: 16px;
+      }
+    }
+
     .menu-card {
-      background: var(--panel-bg);
+      background: rgba(30, 30, 40, 0.88);
+      backdrop-filter: blur(6px);
       border: 6px solid #4e54c8;
       border-radius: 0;
-      padding: 36px 30px;
-      width: 360px;
+      padding: 20px 20px;
+      width: 340px;
+      max-height: 94vh;
+      overflow-y: auto;
       text-align: center;
       position: relative;
       box-shadow: 8px 8px 0 #000;
@@ -201,9 +214,23 @@
       }
     }
 
+    @keyframes swayFloat {
+      0% {
+        transform: translateY(0px) translateX(0px) rotate(-1.5deg);
+      }
+
+      50% {
+        transform: translateY(-6px) translateX(5px) rotate(1.5deg);
+      }
+
+      100% {
+        transform: translateY(0px) translateX(0px) rotate(-1.5deg);
+      }
+    }
+
     .menu-title {
       font-size: 32px;
-      margin: 0 0 6px 0;
+      margin: 0 0 4px 0;
       letter-spacing: 4px;
       color: #ffea00;
       text-shadow: 3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000;
@@ -213,37 +240,74 @@
       font-size: 14px;
       color: #aaa;
       letter-spacing: 2px;
-      margin: 0 0 24px 0;
+      margin: 0 0 14px 0;
       font-weight: bold;
     }
 
     .mode-options {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-bottom: 28px;
+      gap: 8px;
+      margin-bottom: 16px;
     }
 
     .mode-card {
-      background: #15151e;
+      background: rgba(21, 21, 30, 0.9);
       border: 4px solid #444;
       border-radius: 0;
-      padding: 14px 16px;
+      padding: 8px 14px;
       cursor: pointer;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      transition: all 0.1s ease;
+      align-items: flex-start;
+      transition: all 0.25s ease;
       color: var(--text-color);
       font-family: inherit;
       box-shadow: 4px 4px 0 #000;
+      position: relative;
+      overflow: hidden;
+      animation: swayFloat 3.6s ease-in-out infinite alternate;
+    }
+
+    .mode-card:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .mode-card:nth-child(2) {
+      animation-delay: 0.6s;
+    }
+
+    .mode-card:nth-child(3) {
+      animation-delay: 1.2s;
+    }
+
+    .mode-card:nth-child(4) {
+      animation-delay: 1.8s;
+    }
+
+    .hover-texture {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%) scale(0.5) rotate(-12deg);
+      width: 26px;
+      height: 26px;
+      image-rendering: pixelated;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: none;
+    }
+
+    .mode-card:hover .hover-texture,
+    .mode-card.active .hover-texture {
+      opacity: 1;
+      transform: translateY(-50%) scale(1) rotate(0deg);
     }
 
     .mode-card:hover,
     .mode-card.active {
       border-color: #7b82ff;
-      background: #252538;
-      transform: translate(-2px, -2px);
+      background: rgba(37, 37, 56, 0.95);
       box-shadow: 6px 6px 0 #000;
     }
 
@@ -253,15 +317,15 @@
     }
 
     .mode-name {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       letter-spacing: 2px;
     }
 
     .mode-desc {
-      font-size: 11px;
+      font-size: 10px;
       opacity: 0.85;
-      margin-top: 4px;
+      margin-top: 3px;
     }
 
     .play-btn {
@@ -276,8 +340,15 @@
       border-radius: 0;
       cursor: pointer;
       box-shadow: 0 6px 0 #003310, 4px 6px 0 #000;
-      transition: all 0.08s ease;
+      transition: all 0.2s ease;
       letter-spacing: 2px;
+      animation: swayFloat 4s ease-in-out infinite alternate;
+      animation-delay: 2.2s;
+    }
+
+    .play-btn:hover {
+      background: #00e676;
+      border-color: #008137;
     }
 
     .play-btn:active {
@@ -290,34 +361,44 @@
 <body>
 
   <div id="main-menu" class="main-menu">
-    <div class="menu-card">
-      <img src="textures/part.png" alt="decor" class="decor-part decor-1">
-      <img src="textures/gold.png" alt="decor" class="decor-part decor-2">
-      <h1 class="menu-title">TETRIS</h1>
-      <p class="menu-subtitle">SELECT MODE</p>
+        <div class="menu-card">
+            <img src="textures/part.png" alt="decor" class="decor-part decor-1">
+      <img src="textures/gold.png" alt="decor" class="decor-part decor-2">
+      <h1 class="menu-title">TETRIS</h1>
+            <p class="menu-subtitle">SELECT MODE</p>
 
-      <div class="mode-options">
-        <button class="mode-card active" id="mode-classic" onclick="selectMenuMode('CLASSIC')">
-          <span class="mode-name">CLASSIC</span>
-          <span class="mode-desc">Standard Tetris Pieces</span>
-        </button>
-        <button class="mode-card" id="mode-treasure" onclick="selectMenuMode('TREASURE')">
-          <span class="mode-name">TREASURE</span>
-          <span class="mode-desc">Includes Gems & Explosives</span>
-        </button>
-        <button class="mode-card" id="mode-bombrush" onclick="selectMenuMode('BOMB RUSH')">
-          <span class="mode-name">BOMB RUSH</span>
-          <span class="mode-desc">Chain Reaction Explosions</span>
-        </button>
-        <button class="mode-card" id="mode-gemrush" onclick="selectMenuMode('GEM RUSH')">
-          <span class="mode-name">GEM RUSH</span>
-          <span class="mode-desc">Gems Only & Fast Paced</span>
-        </button>
-      </div>
 
-      <button class="play-btn" onclick="startGame()">PLAY NOW</button>
-    </div>
-  </div>
+
+
+            <div class="mode-options">
+                <button class="mode-card active" id="mode-classic" onclick="selectMenuMode('CLASSIC')">
+          <span class="mode-name">CLASSIC</span>
+          <span class="mode-desc">Standard Tetris Pieces</span>
+          <img src="textures/part.png" class="hover-texture" alt="texture">
+        </button>
+                <button class="mode-card" id="mode-treasure" onclick="selectMenuMode('TREASURE')">
+          <span class="mode-name">TREASURE</span>
+          <span class="mode-desc">Includes Gems & Explosives</span>
+          <img src="textures/gold.png" class="hover-texture" alt="texture">
+        </button>
+                <button class="mode-card" id="mode-bombrush" onclick="selectMenuMode('BOMB RUSH')">
+          <span class="mode-name">BOMB RUSH</span>
+          <span class="mode-desc">Chain Reaction Explosions</span>
+          <img src="textures/explosive.png" class="hover-texture" alt="texture">
+        </button>
+                <button class="mode-card" id="mode-gemrush" onclick="selectMenuMode('GEM RUSH')">
+          <span class="mode-name">GEM RUSH</span>
+          <span class="mode-desc">Gems Only & Fast Paced</span>
+          <img src="textures/diamon.png" class="hover-texture" alt="texture">
+        </button>
+              </div>
+
+
+
+
+            <button class="play-btn" onclick="startGame()">PLAY NOW</button>
+          </div>
+      </div>
 
   <div class="game-layout" id="game-layout" style="display: none;">
     <canvas id="tetris" width="240" height="480"></canvas>
@@ -352,17 +433,17 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="touch-controls">
-    <div class="control-group">
-      <button class="btn" id="btn-left">◄</button>
-      <button class="btn" id="btn-down">▼</button>
-      <button class="btn" id="btn-right">►</button>
-    </div>
-    <div class="control-group">
-      <button class="btn btn-wide" id="btn-rotate">ROTATE</button>
-      <button class="btn btn-wide" id="btn-drop">DROP</button>
+    <div class="touch-controls">
+      <div class="control-group">
+        <button class="btn" id="btn-left">◄</button>
+        <button class="btn" id="btn-down">▼</button>
+        <button class="btn" id="btn-right">►</button>
+      </div>
+      <div class="control-group">
+        <button class="btn btn-wide" id="btn-rotate">ROTATE</button>
+        <button class="btn btn-wide" id="btn-drop">DROP</button>
+      </div>
     </div>
   </div>
 
@@ -402,15 +483,16 @@
     };
 
     const TREASURE_TYPES = ['GOLD', 'DIAMOND', 'CRYSTAL', 'EMERALD', 'RUBY', 'EXPLOSIVE'];
-    const treasureImages = {};
-    const treasureFiles = {
-      GOLD: 'textures/gold.png',
-      DIAMOND: 'textures/diamon.png',
-      CRYSTAL: 'textures/crystal.png',
-      EMERALD: 'textures/emerald.png',
-      RUBY: 'textures/ruby.png',
-      EXPLOSIVE: 'textures/explosive.png'
-    };
+    const treasureImages = {};
+    const treasureFiles = {
+      GOLD: 'textures/gold.png',
+      DIAMOND: 'textures/diamon.png',
+      CRYSTAL: 'textures/crystal.png',
+      EMERALD: 'textures/emerald.png',
+      RUBY: 'textures/ruby.png',
+      EXPLOSIVE: 'textures/explosive.png',
+      BIG_BOMB: 'textures/big_bomb.png'
+    };
 
     Object.entries(treasureFiles).forEach(([type, src]) => {
       const img = new Image();
@@ -832,10 +914,46 @@
       }
 
       // Draw Locked Grid Blocks
+      const drawnBigBombs = new Set();
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
-          if (grid[r][c]) {
-            drawBlock(ctx, c, r, grid[r][c]);
+          const type = grid[r][c];
+          if (type && !drawnBigBombs.has(`${r},${c}`)) {
+            if (type === 'BIG_BOMB') {
+              let is4x4 = true;
+              for (let dr = 0; dr < 4; dr++) {
+                for (let dc = 0; dc < 4; dc++) {
+                  if (r + dr >= ROWS || c + dc >= COLS || grid[r + dr][c + dc] !== 'BIG_BOMB') {
+                    is4x4 = false;
+                    break;
+                  }
+                }
+                if (!is4x4) break;
+              }
+
+              if (is4x4) {
+                for (let dr = 0; dr < 4; dr++) {
+                  for (let dc = 0; dc < 4; dc++) {
+                    drawnBigBombs.add(`${r + dr},${c + dc}`);
+                  }
+                }
+                const px = c * BLOCK_SIZE;
+                const py = r * BLOCK_SIZE;
+                const bSize = BLOCK_SIZE * 4;
+                if (treasureImages['BIG_BOMB'] && treasureImages['BIG_BOMB'].complete && treasureImages['BIG_BOMB'].naturalWidth !== 0) {
+                  ctx.drawImage(treasureImages['BIG_BOMB'], px, py, bSize, bSize);
+                } else {
+                  ctx.fillStyle = '#ff0055';
+                  ctx.fillRect(px, py, bSize, bSize);
+                  ctx.strokeStyle = '#ffffff';
+                  ctx.strokeRect(px, py, bSize, bSize);
+                }
+              } else {
+                drawBlock(ctx, c, r, type);
+              }
+            } else {
+              drawBlock(ctx, c, r, type);
+            }
           }
         }
       }
@@ -1013,23 +1131,56 @@
       }
     }
 
-    function handleExplosions() {
-      const queue = [];
+    function applyGravity() {
+      let moved = false;
+      do {
+        moved = false;
+        for (let r = ROWS - 2; r >= 0; r--) {
+          for (let c = 0; c < COLS; c++) {
+            if (grid[r][c] !== 0 && grid[r + 1][c] === 0) {
+              grid[r + 1][c] = grid[r][c];
+              grid[r][c] = 0;
+              moved = true;
+            }
+          }
+        }
+      } while (moved);
+    }
 
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
-          if (grid[r][c] === 'EXPLOSIVE') {
-            queue.push({ r, c });
+    function checkBigBombs() {
+      for (let r = 0; r <= ROWS - 4; r++) {
+        for (let c = 0; c <= COLS - 4; c++) {
+          let is4x4 = true;
+          for (let dr = 0; dr < 4; dr++) {
+            for (let dc = 0; dc < 4; dc++) {
+              if (grid[r + dr][c + dc] !== 'EXPLOSIVE') {
+                is4x4 = false;
+                break;
+              }
+            }
+            if (!is4x4) break;
+          }
+          if (is4x4) {
+            for (let dr = 0; dr < 4; dr++) {
+              for (let dc = 0; dc < 4; dc++) {
+                grid[r + dr][c + dc] = 'BIG_BOMB';
+              }
+            }
+            addFloatingText('BIG BOMB!', (c + 2) * BLOCK_SIZE, (r + 2) * BLOCK_SIZE, '#ff0055');
+            triggerShake(8, 15);
           }
         }
       }
+    }
 
-      if (queue.length === 0) return;
+    function detonateExplosions(initialQueue) {
+      if (!initialQueue || initialQueue.length === 0) return;
 
+      const queue = [...initialQueue];
+      const processed = new Set();
       const canvasRect = canvas.getBoundingClientRect();
       const scaleX = canvasRect.width / canvas.width;
       const scaleY = canvasRect.height / canvas.height;
-      const processed = new Set();
       let totalDestroyed = 0;
 
       while (queue.length > 0) {
@@ -1038,23 +1189,28 @@
         if (processed.has(key)) continue;
         processed.add(key);
 
+        const type = grid[r][c];
         grid[r][c] = 0;
         const px = c * BLOCK_SIZE + BLOCK_SIZE / 2;
         const py = r * BLOCK_SIZE + BLOCK_SIZE / 2;
-        createPixelExplosion(px, py, '#ff3300');
-        triggerShake(7, 12);
-        addFloatingText('BOOM!', px, py, '#ffea00');
 
-        for (let dr = -1; dr <= 1; dr++) {
-          for (let dc = -1; dc <= 1; dc++) {
+        const isBig = (type === 'BIG_BOMB');
+        const radius = isBig ? 3 : 1;
+
+        createPixelExplosion(px, py, isBig ? '#ff0055' : '#ff3300');
+        triggerShake(isBig ? 14 : 7, isBig ? 20 : 12);
+        addFloatingText(isBig ? 'MEGA BOOM!' : 'BOOM!', px, py, '#ffea00');
+
+        for (let dr = -radius; dr <= radius; dr++) {
+          for (let dc = -radius; dc <= radius; dc++) {
             const nr = r + dr;
             const nc = c + dc;
             if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
               const targetType = grid[nr][nc];
               if (targetType) {
-                if (targetType === 'EXPLOSIVE' && !processed.has(`${nr},${nc}`)) {
+                if ((targetType === 'EXPLOSIVE' || targetType === 'BIG_BOMB') && !processed.has(`${nr},${nc}`)) {
                   queue.push({ r: nr, c: nc });
-                } else if (targetType !== 'EXPLOSIVE') {
+                } else if (targetType !== 'EXPLOSIVE' && targetType !== 'BIG_BOMB') {
                   const targetPx = nc * BLOCK_SIZE + BLOCK_SIZE / 2;
                   const targetPy = nr * BLOCK_SIZE + BLOCK_SIZE / 2;
                   createPixelExplosion(targetPx, targetPy, PIECE_COLORS[targetType] || '#ffd700');
@@ -1083,7 +1239,7 @@
       if (collide(grid, currentPiece)) {
         currentPiece.y--;
         merge(grid, currentPiece);
-        handleExplosions();
+        checkBigBombs();
         clearLines();
         spawnPiece();
       }
@@ -1097,64 +1253,92 @@
       currentPiece.y--;
       merge(grid, currentPiece);
       triggerShake(3, 5);
-      handleExplosions();
+      checkBigBombs();
       clearLines();
       spawnPiece();
       dropCounter = 0;
     }
 
     function clearLines() {
-      let linesCleared = 0;
-      let lastClearedY = 0;
-
-      outer: for (let y = ROWS - 1; y >= 0; y--) {
+      const fullRows = [];
+      for (let y = 0; y < ROWS; y++) {
+        let full = true;
         for (let x = 0; x < COLS; x++) {
-          if (!grid[y][x]) continue outer;
+          if (!grid[y][x]) {
+            full = false;
+            break;
+          }
         }
+        if (full) fullRows.push(y);
+      }
 
-        // Spawn pixel particles & fling broken shape parts to menu
-        const canvasRect = canvas.getBoundingClientRect();
-        const scaleX = canvasRect.width / canvas.width;
-        const scaleY = canvasRect.height / canvas.height;
+      if (fullRows.length === 0) return;
 
+      const explosiveQueue = [];
+      const bombKeys = new Set();
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const type = grid[r][c];
+          if (type === 'EXPLOSIVE' || type === 'BIG_BOMB') {
+            const touchesClearedLine = fullRows.some(y => Math.abs(r - y) <= 1);
+            if (touchesClearedLine) {
+              const key = `${r},${c}`;
+              if (!bombKeys.has(key)) {
+                bombKeys.add(key);
+                explosiveQueue.push({ r, c });
+              }
+            }
+          }
+        }
+      }
+
+      const canvasRect = canvas.getBoundingClientRect();
+      const scaleX = canvasRect.width / canvas.width;
+      const scaleY = canvasRect.height / canvas.height;
+      let lastClearedY = fullRows[fullRows.length - 1];
+
+      fullRows.forEach(y => {
         for (let x = 0; x < COLS; x++) {
           const type = grid[y][x];
-          const color = PIECE_COLORS[type] || '#ffd700';
-          const px = x * BLOCK_SIZE + BLOCK_SIZE / 2;
-          const py = y * BLOCK_SIZE + BLOCK_SIZE / 2;
-          createPixelExplosion(px, py, color);
+          if (type) {
+            const color = PIECE_COLORS[type] || '#ffd700';
+            const px = x * BLOCK_SIZE + BLOCK_SIZE / 2;
+            const py = y * BLOCK_SIZE + BLOCK_SIZE / 2;
+            createPixelExplosion(px, py, color);
 
-          const screenX = canvasRect.left + px * scaleX;
-          const screenY = canvasRect.top + py * scaleY;
-          spawnFlyingPart(screenX, screenY);
+            const screenX = canvasRect.left + px * scaleX;
+            const screenY = canvasRect.top + py * scaleY;
+            spawnFlyingPart(screenX, screenY);
+
+            grid[y][x] = 0;
+          }
         }
+      });
 
-        const row = grid.splice(y, 1)[0].fill(0);
-        grid.unshift(row);
-        lastClearedY = y;
-        y++;
-        linesCleared++;
+      const linesCleared = fullRows.length;
+      const lineScores = [0, 40, 100, 300, 1200];
+      const addedScore = lineScores[linesCleared] * level;
+      score += addedScore;
+      lines += linesCleared;
+      level = Math.floor(lines / 10) + 1;
+      dropInterval = Math.max(100, 1000 - (level - 1) * 80);
+
+      triggerShake(4 + linesCleared * 3, 8 + linesCleared * 5);
+
+      const labels = ['', 'CLEAR!', 'DOUBLE!', 'TRIPLE!', 'TETRIS!'];
+      const label = labels[linesCleared] || 'BOOM!';
+      addFloatingText(`+${addedScore} ${label}`, canvas.width / 2, lastClearedY * BLOCK_SIZE + 12, '#ffea00');
+
+      document.getElementById('score').innerText = score;
+      document.getElementById('lines').innerText = lines;
+      document.getElementById('level').innerText = level;
+
+      if (explosiveQueue.length > 0) {
+        detonateExplosions(explosiveQueue);
       }
 
-      if (linesCleared > 0) {
-        // Standard Tetris scoring & FX
-        const lineScores = [0, 40, 100, 300, 1200];
-        const addedScore = lineScores[linesCleared] * level;
-        score += addedScore;
-        lines += linesCleared;
-        level = Math.floor(lines / 10) + 1;
-        dropInterval = Math.max(100, 1000 - (level - 1) * 80);
-
-        triggerShake(4 + linesCleared * 3, 8 + linesCleared * 5);
-
-        const labels = ['', 'CLEAR!', 'DOUBLE!', 'TRIPLE!', 'TETRIS!'];
-        const label = labels[linesCleared] || 'BOOM!';
-        addFloatingText(`+${addedScore} ${label}`, canvas.width / 2, lastClearedY * BLOCK_SIZE + 12, '#ffea00');
-
-        document.getElementById('score').innerText = score;
-        document.getElementById('lines').innerText = lines;
-        document.getElementById('level').innerText = level;
-      }
+      applyGravity();
+      checkBigBombs();
     }
 
     function spawnPiece() {
