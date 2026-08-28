@@ -500,10 +500,43 @@
       treasureImages[type] = img;
     });
 
+    /* ==========================================
+       AUDIO SYSTEM
+       ========================================== */
+    const audioCache = {
+      menuMusic: new Audio('sounds/song2.mp3'),
+      gameMusic: new Audio('sounds/Song1.mp3')
+    };
+    audioCache.menuMusic.loop = true;
+    audioCache.gameMusic.loop = true;
+    audioCache.menuMusic.volume = 0.4;
+    audioCache.gameMusic.volume = 0.4;
+
+    function playSound(src, volume = 0.6) {
+      try {
+        const sound = new Audio(src);
+        sound.volume = volume;
+        sound.play().catch(() => {});
+      } catch (e) {}
+    }
+
+    function playMusic(track) {
+      try {
+        audioCache.menuMusic.pause();
+        audioCache.gameMusic.pause();
+        if (track) {
+          track.currentTime = 0;
+          track.play().catch(() => {});
+        }
+      } catch (e) {}
+    }
+
     let gameMode = 'CLASSIC';
     let isGameRunning = false;
 
     function selectMenuMode(mode) {
+      playSound('sounds/startbtn.mp3', 0.5);
+      playMusic(audioCache.menuMusic);
       gameMode = mode;
       const modes = ['CLASSIC', 'TREASURE', 'BOMB RUSH', 'GEM RUSH'];
       modes.forEach(m => {
@@ -522,6 +555,8 @@
     }
 
     function startGame() {
+      playSound('sounds/startbtn.mp3', 0.8);
+      playMusic(audioCache.gameMusic);
       document.getElementById('main-menu').style.display = 'none';
       document.getElementById('game-layout').style.display = 'flex';
       isGameRunning = true;
@@ -532,6 +567,7 @@
 
     function returnToMenu() {
       isGameRunning = false;
+      playMusic(audioCache.menuMusic);
       document.getElementById('game-layout').style.display = 'none';
       document.getElementById('main-menu').style.display = 'flex';
     }
@@ -650,6 +686,7 @@
     let gameOver = false;
 
     function incrementParts() {
+      playSound('sounds/collectpart.mp3', 0.7);
       partsBroken++;
       const countEl = document.getElementById('parts-count');
       if (countEl) countEl.innerText = partsBroken;
@@ -1244,6 +1281,7 @@ if (is2x2) {
         createPixelExplosion(px, py, isBig ? '#ff0055' : '#ff3300');
         triggerShake(isBig ? 20 : 7, isBig ? 30 : 12);
         addFloatingText(isBig ? 'MEGA BOOM!' : 'BOOM!', px, py, '#ffea00');
+        playSound('sounds/lolo_s-tiny-explosion-47408.mp3', isBig ? 1.0 : 0.7);
 
         for (let dr = -radius; dr <= radius; dr++) {
           for (let dc = -radius; dc <= radius; dc++) {
@@ -1367,6 +1405,7 @@ if (is2x2) {
       level = Math.floor(lines / 10) + 1;
       dropInterval = Math.max(100, 1000 - (level - 1) * 80);
 
+      playSound('sounds/break.mp3', 0.8);
       triggerShake(4 + linesCleared * 3, 8 + linesCleared * 5);
 
       const labels = ['', 'CLEAR!', 'DOUBLE!', 'TRIPLE!', 'TETRIS!'];
