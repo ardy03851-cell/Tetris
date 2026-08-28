@@ -511,6 +511,7 @@
     audioCache.gameMusic.loop = true;
     audioCache.menuMusic.volume = 0.4;
     audioCache.gameMusic.volume = 0.4;
+    let lastPartSoundTime = 0;
 
     function playSound(src, volume = 0.6) {
       try {
@@ -686,7 +687,11 @@
     let gameOver = false;
 
     function incrementParts() {
-      playSound('sounds/collectpart.mp3', 0.7);
+      const now = performance.now();
+      if (now - lastPartSoundTime > 60) {
+        playSound('sounds/collectpart.mp3', 0.7);
+        lastPartSoundTime = now;
+      }
       partsBroken++;
       const countEl = document.getElementById('parts-count');
       if (countEl) countEl.innerText = partsBroken;
