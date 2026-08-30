@@ -447,7 +447,8 @@
     </div>
   </div>
 
-  <script>
+    <script src="vfx-engine.js"></script>
+    <script>
     /* ==========================================
        3. CONFIG & SHAPES DEFINITION
        ========================================== */
@@ -765,108 +766,23 @@
     let currentPiece = null;
     let nextPiece = null;
 
-    // High-Quality Custom Particle & Motion FX Engine
-    let particles = [];
-    let floatingTexts = [];
-    let shakeDuration = 0;
-    let shakeMagnitude = 0;
+    // Custom VFX Engine instance (see vfx-engine.js)
+    const vfx = new VFXEngine();
 
     function triggerShake(magnitude = 2, duration = 12) {
-      shakeMagnitude = magnitude;
-      shakeDuration = duration;
+      vfx.triggerShake(magnitude, duration);
     }
 
     function createPixelExplosion(x, y, color) {
-      // High density burst with varied particle archetypes & physics
-      const count = 35 + Math.floor(Math.random() * 15);
-      for (let i = 0; i < count; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 1.5 + Math.random() * 6.5;
-        const isSpark = Math.random() < 0.35;
-        const isEmber = !isSpark && Math.random() < 0.3;
-
-        particles.push({
-          x: x + (Math.random() - 0.5) * 8,
-          y: y + (Math.random() - 0.5) * 8,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - (isSpark ? 3.0 : 1.5),
-          gravity: isSpark ? 0.12 : (isEmber ? 0.08 : 0.26),
-          drag: isSpark ? 0.93 : 0.96,
-          bounce: isSpark ? 0.2 : 0.55,
-          size: isSpark ? 10 : (isEmber ? Math.floor(Math.random() * 2) + 2 : Math.floor(Math.random() * 3) + 3),
-          color: color,
-          type: isSpark ? 'spark' : (isEmber ? 'ember' : 'block'),
-          vRot: (Math.random() - 0.5) * 0.3,
-          wobbleFreq: 0.1 + Math.random() * 0.2,
-          wobbleAmp: Math.random() * 0.8,
-          life: 1.0,
-          decay: isSpark ? (0.03 + Math.random() * 0.04) : (0.015 + Math.random() * 0.02)
-        });
-      }
+      vfx.createPixelExplosion(x, y, color);
     }
 
     function addFloatingText(text, x, y, color = '#ffea00') {
-      floatingTexts.push({
-        text: text,
-        x: x,
-        y: y,
-        vx: (Math.random() - 0.5) * 0.8,
-        vy: -3.2,
-        scale: 0.2,
-        targetScale: 1.0,
-        life: 1.0,
-        decay: 0.014,
-        color: color,
-        wobblePhase: Math.random() * Math.PI * 2
-      });
+      vfx.addFloatingText(text, x, y, color);
     }
 
     function updateFX() {
-      if (shakeDuration > 0) shakeDuration--;
-
-      // Advanced physical simulation: drag, gravity, spin, bounce, boundaries
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.vx *= p.drag;
-        p.vy *= p.drag;
-        p.vy += p.gravity;
-
-        if (p.type !== 'block') {
-          p.vx += Math.sin(p.life * 20 * p.wobbleFreq) * p.wobbleAmp * 0.1;
-        }
-
-        p.x += p.vx;
-        p.y += p.vy;
-
-        // Wall & Floor collisions
-        if (p.y >= canvas.height - p.size) {
-          p.y = canvas.height - p.size;
-          p.vy = -p.vy * p.bounce;
-          p.vx *= 0.65;
-        }
-        if (p.x <= 0 || p.x >= canvas.width - p.size) {
-          p.vx = -p.vx * p.bounce;
-          p.x = Math.max(0, Math.min(canvas.width - p.size, p.x));
-        }
-
-        p.life -= p.decay;
-        if (p.life <= 0) particles.splice(i, 1);
-      }
-
-      // Smooth floating text physics with pop scaling & sine floating dynamics
-      for (let i = floatingTexts.length - 1; i >= 0; i--) {
-        const ft = floatingTexts[i];
-        ft.x += ft.vx + Math.sin(ft.life * 12 + ft.wobblePhase) * 0.35;
-        ft.y += ft.vy;
-        ft.vy *= 0.93;
-
-        if (ft.scale < ft.targetScale) {
-          ft.scale += (ft.targetScale - ft.scale) * 0.35;
-        }
-
-        ft.life -= ft.decay;
-        if (ft.life <= 0) floatingTexts.splice(i, 1);
-      }
+      vfx.update(canvas);
     }
 
     function createGrid() {
@@ -976,9 +892,9 @@
       ctx.save();
 
       // Pixelated Camera Shake
-      if (shakeDuration > 0) {
-        const shakeX = Math.floor((Math.random() - 0.5) * shakeMagnitude * 2);
-        const shakeY = Math.floor((Math.random() - 0.5) * shakeMagnitude * 2);
+      if (vfx.shakeDuration > 0) {
+        const shakeX = Math.floor((Math.random() - 0.5) * vfx.shakeMagnitude * 2);
+        const shakeY = Math.floor((Math.random() - 0.5) * vfx.shakeMagnitude * 2);
         ctx.translate(shakeX, shakeY);
       }
 
@@ -1071,44 +987,12 @@ if (is2x2) {
         });
       }
 
-      // Render High-Quality Pixel Particles
-      particles.forEach(p => {
-        const px = Math.floor(p.x);
-        const py = Math.floor(p.y);
-        const currentSize = Math.max(1, Math.floor(p.size * Math.min(1, p.life * 1.2)));
-        ctx.globalAlpha = Math.max(0, Math.min(1, p.life));
+      // Render High-Quality Pixel Particles (via Custom VFX Engine)
+      vfx.renderParticles(ctx);
 
-        if (p.type === 'spark') {
-          // Intense core spark with color tint
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(px, py, currentSize, currentSize);
-          ctx.fillStyle = p.color;
-          ctx.fillRect(px - 1, py, 1, currentSize);
-          ctx.fillRect(px + currentSize, py, 1, currentSize);
-        } else if (p.type === 'ember') {
-          // Soft glowing pixel ember
-          ctx.fillStyle = p.color;
-          ctx.fillRect(px, py, currentSize, currentSize);
-        } else {
-          // 3D Pixel Block Shards with light highlight and shadow
-          ctx.fillStyle = p.color;
-          ctx.fillRect(px, py, currentSize, currentSize);
-
-          // Top-Left highlight
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-          ctx.fillRect(px, py, Math.max(1, currentSize - 1), 1);
-          ctx.fillRect(px, py, 1, Math.max(1, currentSize - 1));
-
-          // Bottom-Right shadow
-          ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-          ctx.fillRect(px, py + currentSize - 1, currentSize, 1);
-          ctx.fillRect(px + currentSize - 1, py, 1, currentSize);
-        }
-      });
-      ctx.globalAlpha = 1.0;
-
-      // Render Modern Pixel Floating Text with Outline & Pop Scaling
-      floatingTexts.forEach(ft => {
+      // Render Modern Pixel Floating Text with Outline & Pop Scaling (via Custom VFX Engine)
+      vfx.renderFloatingTexts(ctx);
+      if (false) floatingTexts.forEach(ft => {
         ctx.save();
         ctx.globalAlpha = Math.max(0, Math.min(1, ft.life));
         ctx.translate(Math.floor(ft.x), Math.floor(ft.y));
